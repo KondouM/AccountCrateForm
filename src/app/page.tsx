@@ -1,12 +1,32 @@
 'use client';
-
-import { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 export default function HomePage() {
   const [userID, setUserID] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [buttonColor, setButtonColor] = useState('#007bff');
+  const [gameIds, setGameIds] = useState<{ id: number; gameId: string }[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchGameIds = async () => {
+    try {
+      const response = await fetch('/api/getGameIds');
+      if (!response.ok) {
+        throw new Error('データの取得に失敗しました。');
+      }
+      const data = await response.json();
+      setGameIds(data);
+    } catch (error) {
+      console.error('データの取得に失敗しました。', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchGameIds();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -73,17 +93,31 @@ export default function HomePage() {
           ユーザーを作成する
         </button>
       </form>
+      <div style={styles.gameIdContainer}>
+        {loading ? (
+          <p>Loading...</p>
+        ) : (
+          <ul style={styles.gameIdList}>
+            {gameIds.map(({ id, gameId }) => (
+              <li key={id} style={styles.gameIdItem}>
+                {id}. {gameId}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
-    justifyContent: 'center',
+    flexDirection: 'column', // flexDirectionに適切な値を設定
     alignItems: 'center',
     height: '100vh',
     backgroundColor: '#f0f2f5',
+    padding: '20px', // px単位で設定
   },
   form: {
     backgroundColor: '#fff',
@@ -91,6 +125,7 @@ const styles = {
     borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
     width: '300px',
+    marginBottom: '20px', // フォームの下にマージンを追加
   },
   inputGroup: {
     marginBottom: '15px',
@@ -119,5 +154,20 @@ const styles = {
   error: {
     color: 'red',
     fontSize: '14px',
+  },
+  gameIdContainer: {
+    width: '300px',
+    backgroundColor: '#fff',
+    padding: '10px',
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+  },
+  gameIdList: {
+    listStyleType: 'none',
+    padding: 0,
+    margin: 0,
+  },
+  gameIdItem: {
+    padding: '5px 0',
   },
 };
