@@ -7,8 +7,11 @@ export default function HomePage() {
   const [error, setError] = useState('');
   const [buttonColor, setButtonColor] = useState('#007bff');
   const [gameIds, setGameIds] = useState<{ id: number; gameId: string }[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [avatarData, setAvatarData] = useState<{ name: string; lev: number }[]>([]);
+  const [loadingGameIds, setLoadingGameIds] = useState(true);
+  const [loadingAvatarData, setLoadingAvatarData] = useState(true);
 
+  // ゲームIDを取得する関数
   const fetchGameIds = async () => {
     try {
       const response = await fetch('/api/getGameIds');
@@ -20,12 +23,29 @@ export default function HomePage() {
     } catch (error) {
       console.error('データの取得に失敗しました。', error);
     } finally {
-      setLoading(false);
+      setLoadingGameIds(false);
+    }
+  };
+
+  // Avatarデータを取得する関数
+  const fetchAvatarData = async () => {
+    try {
+      const response = await fetch('/api/getAvatarData');
+      if (!response.ok) {
+        throw new Error('データの取得に失敗しました。');
+      }
+      const data = await response.json();
+      setAvatarData(data);
+    } catch (error) {
+      console.error('データの取得に失敗しました。', error);
+    } finally {
+      setLoadingAvatarData(false);
     }
   };
 
   useEffect(() => {
     fetchGameIds();
+    fetchAvatarData();
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -93,20 +113,38 @@ export default function HomePage() {
           ユーザーを作成する
         </button>
       </form>
-      ※下記のID以外で登録してください。
-      <div style={styles.gameIdContainer}>
-        登録済みユーザーID
-        {loading ? (
-          <p>Loading...</p>
-        ) : (
-          <ul style={styles.gameIdList}>
-            {gameIds.map(({ id, gameId }) => (
-              <li key={id} style={styles.gameIdItem}>
-                {id}. {gameId}
-              </li>
-            ))}
-          </ul>
-        )}
+      <div style={styles.content}>
+        <div style={styles.gameIdContainer}>
+          ※下記のID以外で登録してください。
+          <div>
+            登録済みユーザーID
+            {loadingGameIds ? (
+              <p>Loading...</p>
+            ) : (
+              <ul style={styles.gameIdList}>
+                {gameIds.map(({ id, gameId }) => (
+                  <li key={id} style={styles.gameIdItem}>
+                    {id}. {gameId}
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
+        </div>
+        <div style={styles.avatarContainer}>
+          <h2>ランキング</h2>
+          {loadingAvatarData ? (
+            <p>Loading...</p>
+          ) : (
+            <ul style={styles.avatarList}>
+              {avatarData.map(({ name, lev }, index) => (
+                <li key={index} style={styles.avatarItem}>
+                  {index + 1}. {name} - Level: {lev}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -115,11 +153,11 @@ export default function HomePage() {
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
-    flexDirection: 'column', // flexDirectionに適切な値を設定
-    alignItems: 'center',
+    flexDirection: 'row', // フォームとランキングを横に並べる
+    alignItems: 'flex-start',
     height: '100vh',
     backgroundColor: '#f0f2f5',
-    padding: '20px', // px単位で設定
+    padding: '20px',
   },
   form: {
     backgroundColor: '#fff',
@@ -127,7 +165,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
     width: '300px',
-    marginBottom: '20px', // フォームの下にマージンを追加
+    marginRight: '20px', // フォームとランキングの間にマージンを追加
   },
   inputGroup: {
     marginBottom: '15px',
@@ -157,7 +195,19 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'red',
     fontSize: '14px',
   },
+  content: {
+    display: 'flex',
+    flexDirection: 'row', // フォームとランキングを横に並べる
+  },
   gameIdContainer: {
+    width: '300px',
+    backgroundColor: '#fff',
+    padding: '10px',
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    marginRight: '20px', // ゲームIDとランキングの間にマージンを追加
+  },
+  avatarContainer: {
     width: '300px',
     backgroundColor: '#fff',
     padding: '10px',
@@ -170,6 +220,14 @@ const styles: Record<string, React.CSSProperties> = {
     margin: 0,
   },
   gameIdItem: {
+    padding: '5px 0',
+  },
+  avatarList: {
+    listStyleType: 'none',
+    padding: 0,
+    margin: 0,
+  },
+  avatarItem: {
     padding: '5px 0',
   },
 };
