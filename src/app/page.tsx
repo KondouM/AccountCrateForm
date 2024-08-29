@@ -93,7 +93,9 @@ export default function HomePage() {
           ユーザーを作成する
         </button>
       </form>
+      ※下記のID以外で登録してください。
       <div style={styles.gameIdContainer}>
+        登録済みユーザーID
         {loading ? (
           <p>Loading...</p>
         ) : (
