@@ -44,8 +44,15 @@ export default function HomePage() {
   };
 
   useEffect(() => {
-    fetchGameIds();
-    fetchAvatarData();
+    const fetchData = async () => {
+      await Promise.all([fetchGameIds(), fetchAvatarData()]);
+    };
+
+    fetchData(); // 初回データ取得
+
+    const intervalId = setInterval(fetchData, 30000); // 30秒ごとにデータ取得
+
+    return () => clearInterval(intervalId); // クリーンアップ
   }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
