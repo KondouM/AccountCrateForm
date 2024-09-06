@@ -8,8 +8,10 @@ export default function HomePage() {
   const [buttonColor, setButtonColor] = useState('#007bff');
   const [gameIds, setGameIds] = useState<{ id: number; gameId: string }[]>([]);
   const [avatarData, setAvatarData] = useState<{ name: string; lev: number }[]>([]);
+  const [onlinePlayers, setOnlinePlayers] = useState<{ id: number; gameId: string }[]>([]);
   const [loadingGameIds, setLoadingGameIds] = useState(true);
   const [loadingAvatarData, setLoadingAvatarData] = useState(true);
+  const [loadingOnlinePlayers, setLoadingOnlinePlayers] = useState(true);
 
   // ゲームIDを取得する関数
   const fetchGameIds = async () => {
@@ -43,10 +45,33 @@ export default function HomePage() {
     }
   };
 
+  // オンラインプレイヤーを取得する関数
+  const fetchOnlinePlayers = async () => {
+    try {
+      const response = await fetch('/api/getOnlinePlayers');
+      if (!response.ok) {
+        throw new Error('オンラインプレイヤーの取得に失敗しました。');
+      }
+      const data = await response.json();
+      setOnlinePlayers(data);
+    } catch (error) {
+      console.error('オンラインプレイヤーの取得に失敗しました。', error);
+    } finally {
+      setLoadingOnlinePlayers(false);
+    }
+  };
+
   useEffect(() => {
-    fetchGameIds();
-    fetchAvatarData();
-  }, []);
+    // ゲームID、Avatarデータ、オンラインプレイヤーを10秒ごとに取得する
+    const intervalId = setInterval(() => {
+      fetchGameIds();
+      fetchAvatarData();
+      fetchOnlinePlayers();
+    }, 10000); // 10000ミリ秒 = 10秒
+  
+    // クリーンアップ処理として、コンポーネントがアンマウントされる際にインターバルをクリア
+    return () => clearInterval(intervalId);
+  }, []); // 空の依存配列を使用して初回マウント時にのみインターバルを設定
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -145,6 +170,20 @@ export default function HomePage() {
             </ul>
           )}
         </div>
+        <div style={styles.onlinePlayersContainer}>
+          <h2>現在のオンラインプレイヤー</h2>
+          {loadingOnlinePlayers ? (
+            <p>Loading...</p>
+          ) : (
+            <ul style={styles.onlinePlayersList}>
+              {onlinePlayers.map(({ id, gameId }) => (
+                <li key={id} style={styles.onlinePlayerItem}>
+                  {id}. {gameId}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
       </div>
     </div>
   );
@@ -207,36 +246,51 @@ const styles: Record<string, React.CSSProperties> = {
   gameIdContainer: {
     width: '300px',
     backgroundColor: '#fff',
-    padding: '10px',
+    padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    marginRight: '20px', // ゲームIDとランキングの間にマージンを追加
-    maxHeight: '400px', // 最大高さを設定
-    overflowY: 'auto', // 縦方向にスクロール可能にする
+    maxHeight: '400px', // 最大高さを指定
+    overflowY: 'auto', // 縦方向にスクロール可能
   },
   avatarContainer: {
     width: '300px',
     backgroundColor: '#fff',
-    padding: '10px',
+    padding: '20px',
     borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    maxHeight: '400px', // 最大高さを設定
-    overflowY: 'auto', // 縦方向にスクロール可能にする
+    marginLeft: '20px', // ランキングとオンラインプレイヤーの間にマージンを追加
+    maxHeight: '400px', // 最大高さを指定
+    overflowY: 'auto', // 縦方向にスクロール可能
+  },
+  onlinePlayersContainer: {
+    width: '300px',
+    backgroundColor: '#fff',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    marginLeft: '20px', // オンラインプレイヤーとランキングの間にマージンを追加
+    maxHeight: '400px', // 最大高さを指定
+    overflowY: 'auto', // 縦方向にスクロール可能
   },
   gameIdList: {
-    listStyleType: 'none',
+    listStyle: 'none',
     padding: 0,
-    margin: 0,
   },
   gameIdItem: {
     padding: '5px 0',
   },
   avatarList: {
-    listStyleType: 'none',
+    listStyle: 'none',
     padding: 0,
-    margin: 0,
   },
   avatarItem: {
+    padding: '5px 0',
+  },
+  onlinePlayersList: {
+    listStyle: 'none',
+    padding: 0,
+  },
+  onlinePlayerItem: {
     padding: '5px 0',
   },
 };
