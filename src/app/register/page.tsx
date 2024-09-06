@@ -67,7 +67,7 @@ export default function HomePage() {
       fetchGameIds();
       fetchAvatarData();
       fetchOnlinePlayers();
-    }, 10000); // 10000ミリ秒 = 10秒
+    }, 2000); // 10000ミリ秒 = 10秒
   
     // クリーンアップ処理として、コンポーネントがアンマウントされる際にインターバルをクリア
     return () => clearInterval(intervalId);
