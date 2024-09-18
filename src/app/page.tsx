@@ -9,7 +9,7 @@ const lampStyles = {
 
 interface Player {
   name: string;
-  job: string;
+  job: number;  // job を数値型に変更
   lev: number;
   login: number;
 }
@@ -135,7 +135,14 @@ export default function HomePage() {
                     <tr key={index}>
                       <td style={{ padding: '5px' }}>{index + 1}</td> {/* インデックス番号を表示 */}
                       <td style={{ padding: '5px' }}>{player.name}</td>
-                      <td style={{ padding: '5px' }}>{player.job}</td>
+                      <td style={{ padding: '5px' }}>
+                        {/* job番号に応じた画像を表示 */}
+                        <img
+                          src={`/images/${player.job}.gif`}
+                          alt={`Job ${player.job}`}
+                          style={{ width: '30px', height: '20px', borderRadius: '10%' }}
+                        />
+                      </td>
                       <td style={{ padding: '5px' }}>{player.lev}</td>
                       <td style={{ padding: '5px', textAlign: 'center' }}>
                         {/* ログインステータスの中央にランプを配置 */}
