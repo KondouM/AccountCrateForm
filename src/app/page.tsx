@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 
 // ランプのスタイル
 const lampStyles = {
-  green: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'green' },
+  red: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'red' },
   gray: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'gray' },
 };
 
@@ -147,7 +147,7 @@ export default function HomePage() {
                       <td style={{ padding: '5px', textAlign: 'center' }}>
                         {/* ログインステータスの中央にランプを配置 */}
                         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                          <div style={player.login === 1 ? lampStyles.green : lampStyles.gray}></div>
+                          <div style={player.login === 1 ? lampStyles.red : lampStyles.gray}></div>
                         </div>
                       </td>
                     </tr>
