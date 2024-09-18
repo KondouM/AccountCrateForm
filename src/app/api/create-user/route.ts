@@ -13,7 +13,6 @@ const defaultConfig = {
   },
 };
 
-// 確認用に直接設定を記述
 const redgemConfig = {
   user: 'sa',
   password: 'Redstone2024',
@@ -26,17 +25,10 @@ const redgemConfig = {
   },
 };
 
-  // // redgem データベースの設定
-  // const redgemConfig = {
-  //   ...defaultConfig,
-  //   database: process.env.DB_NAME_REDgem as string,
-  // };
-
-  // Redstone_Avatar_Source データベースの設定
-  const avatarConfig = {
-    ...defaultConfig,
-    database: process.env.DB_NAME_AVATAR as string,
-  };
+const avatarConfig = {
+  ...defaultConfig,
+  database: process.env.DB_NAME_AVATAR as string,
+};
 
 export async function POST(req: Request) {
   try {
@@ -48,6 +40,16 @@ export async function POST(req: Request) {
 
     // Redstone データベースへの接続
     const pool = await sql.connect(defaultConfig);
+
+    // ユーザーIDの存在確認
+    const existingUserResult = await pool.request()
+      .input('I_GAMEID', sql.NVarChar(50), userID)
+      .query('SELECT COUNT(*) AS userCount FROM [RedStone_ID_Source].[dbo].[USER_TABLE] WHERE [GameId] = @I_GAMEID'); // 列名を修正
+
+    if (existingUserResult.recordset[0].userCount > 0) {
+      await pool.close();
+      return NextResponse.json({ error: '既に登録されているIDです。' }, { status: 400 });
+    }
 
     // ユーザー作成のためのストアドプロシージャの実行
     const result = await pool.request()
@@ -61,14 +63,12 @@ export async function POST(req: Request) {
     console.log('Result from spRS_USER_CREATE:', result.output.O_RESULT);
     await pool.close();
 
-    
     // redgem データベースへの接続
     const redgemPool = await sql.connect(redgemConfig);
 
     // 接続確認: 現在のデータベース名を取得
     const dbNameResult = await redgemPool.request().query('SELECT DB_NAME() AS databaseName');
     console.log('Connected to database:', dbNameResult.recordset[0].databaseName);
-
 
     // redgem データベースでのユーザー情報の挿入または更新
     await redgemPool.request()
@@ -87,27 +87,26 @@ export async function POST(req: Request) {
       .input('YhUserNewsYN', sql.Bit, 0)
       .input('YhUserURL', sql.VarChar(255), 'discord')
       .input('EnrollFlag', sql.VarChar(13), 'INSERT')
-      .execute('RgameJH.SP_Yh_User_Overwrite'); // 正しいスキーマを指定
+      .execute('RgameJH.SP_Yh_User_Overwrite');
 
     // redgem データベースでの GEM 付与
     await redgemPool.request()
       .input('uid', sql.VarChar(20), userID)
       .query`UPDATE [dbo].[AcTb] SET mp = mp + 99999 WHERE uid = @uid`;
-      await pool.close();
+    await redgemPool.close();
 
-
+    // Avatar データベースへの接続
     const AvatarPool = await sql.connect(avatarConfig);
 
     // Redstone_Avatar_Source データベースでの OP 権限付与
     await AvatarPool.request()
       .input('name', sql.NVarChar(50), userID)
       .query`UPDATE [dbo].[Avatar_Current] SET isOper = 5 WHERE name = @name`;
-      await AvatarPool.close();
-      
+    await AvatarPool.close();
+    
     return NextResponse.json({ message: 'User created and updated successfully' }, { status: 200 });
   } catch (error) {
     console.error('Database operation failed:', error);
     return NextResponse.json({ error: 'Database operation failed' }, { status: 500 });
   }
-      
 }

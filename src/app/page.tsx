@@ -1,20 +1,82 @@
 'use client';
-import React, { useState } from 'react';
-import Link from 'next/link';
+import React, { useState, useEffect } from 'react';
 
-export default function PassphrasePage() {
-  const [passphrase, setPassphrase] = useState('');
+// ランプのスタイル
+const lampStyles = {
+  green: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'green' },
+  gray: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'gray' },
+};
+
+interface Player {
+  name: string;
+  job: string;
+  lev: number;
+  login: number;
+}
+
+export default function HomePage() {
+  const [userID, setUserID] = useState('');
+  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const correctPassphrase = 'reredstone'; // 合言葉をここに設定
+  const [buttonColor, setButtonColor] = useState('#007bff');
+  const [gameIds, setGameIds] = useState<{ id: number; gameId: string }[]>([]);
+  const [players, setPlayers] = useState<Player[]>([]);
+  const [loadingPlayers, setLoadingPlayers] = useState(true);
 
-  const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
+  // プレイヤーデータを取得する関数
+  const fetchPlayers = async () => {
+    try {
+      const response = await fetch('/api/getPlayersData');
+      if (!response.ok) {
+        throw new Error('プレイヤーデータの取得に失敗しました。');
+      }
+      const data = await response.json();
+      setPlayers(data);
+    } catch (error) {
+      console.error('プレイヤーデータの取得に失敗しました。', error);
+    } finally {
+      setLoadingPlayers(false);
+    }
+  };
+
+  useEffect(() => {
+    // プレイヤーデータを2秒ごとに取得する
+    const intervalId = setInterval(() => {
+      fetchPlayers();
+    }, 2000); // 2000ミリ秒 = 2秒
+  
+    // クリーンアップ処理として、コンポーネントがアンマウントされる際にインターバルをクリア
+    return () => clearInterval(intervalId);
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    if (passphrase === correctPassphrase) {
-      // 合言葉が正しければHomePageへ遷移
-      setError(''); // エラーをクリア
-      // 通常のフォームの代わりにリンクを表示
-    } else {
-      setError('合言葉が正しくありません。');
+    
+    setError(''); // エラーをリセット
+
+    try {
+      const response = await fetch('/api/create-user', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ userID, password }),
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'ユーザーの作成に失敗しました。');
+      }
+
+      // アラートを表示
+      alert('完了しました。');
+
+      // 入力内容をクリア
+      setUserID('');
+      setPassword('');
+    } catch (error) {
+      setError((error as Error).message);
     }
   };
 
@@ -22,22 +84,73 @@ export default function PassphrasePage() {
     <div style={styles.container}>
       <form onSubmit={handleSubmit} style={styles.form}>
         <div style={styles.inputGroup}>
-          <label htmlFor="passphrase" style={styles.label}>合言葉:</label>
+          <label htmlFor="userID" style={styles.label}>User ID:</label>
+          <input
+            type="text"
+            id="userID"
+            value={userID}
+            onChange={(e) => setUserID(e.target.value)}
+            style={styles.input}
+          />
+        </div>
+        <div style={styles.inputGroup}>
+          <label htmlFor="password" style={styles.label}>Password:</label>
           <input
             type="password"
-            id="passphrase"
-            value={passphrase}
-            onChange={(e) => setPassphrase(e.target.value)}
+            id="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
             style={styles.input}
           />
         </div>
         {error && <p style={styles.error}>{error}</p>}
-        {!error && passphrase === correctPassphrase && (
-          <Link href="/register" passHref>
-            <button type="button" style={styles.button}>ホームページへ移動</button>
-          </Link>
-        )}
+        <button
+          type="submit"
+          style={{ ...styles.button, backgroundColor: buttonColor }}
+          onMouseEnter={() => setButtonColor('#0056b3')}
+          onMouseLeave={() => setButtonColor('#007bff')}
+        >
+          ユーザーを作成する
+        </button>
       </form>
+      <div style={styles.content}>
+        <div style={styles.playersContainer}>
+          <h2>Players List</h2>
+          {loadingPlayers ? (
+            <p>Loading...</p>
+          ) : (
+            <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
+              <table style={{ width: '100%', textAlign: 'center', borderCollapse: 'separate', borderSpacing: '0 2px' }}>
+                <thead>
+                  <tr>
+                    <th style={{ padding: '5px' }}>Rank</th>
+                    <th style={{ padding: '5px' }}>Name</th>
+                    <th style={{ padding: '5px' }}>Job</th>
+                    <th style={{ padding: '5px' }}>Level</th>
+                    <th style={{ padding: '5px' }}>Login Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {players.map((player, index) => (
+                    <tr key={index}>
+                      <td style={{ padding: '5px' }}>{index + 1}</td> {/* インデックス番号を表示 */}
+                      <td style={{ padding: '5px' }}>{player.name}</td>
+                      <td style={{ padding: '5px' }}>{player.job}</td>
+                      <td style={{ padding: '5px' }}>{player.lev}</td>
+                      <td style={{ padding: '5px', textAlign: 'center' }}>
+                        {/* ログインステータスの中央にランプを配置 */}
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                          <div style={player.login === 1 ? lampStyles.green : lampStyles.gray}></div>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -45,10 +158,16 @@ export default function PassphrasePage() {
 const styles: Record<string, React.CSSProperties> = {
   container: {
     display: 'flex',
-    justifyContent: 'center',
-    alignItems: 'center',
+    flexDirection: 'row', // フォームとゲームIDリストを横に並べる
+    alignItems: 'flex-start',
     height: '100vh',
+    width: '100vw', // 横幅を画面全体に設定
     backgroundColor: '#f0f2f5',
+    backgroundImage: 'url("/images/background.jpg")',
+    backgroundSize: 'cover', // 画像をコンテナ全体にフィットさせる
+    backgroundPosition: 'center', // 画像をコンテナの中央に配置
+    backgroundRepeat: 'no-repeat', // 画像の繰り返しを防ぐ
+    padding: '20px',
   },
   form: {
     backgroundColor: '#fff',
@@ -56,6 +175,7 @@ const styles: Record<string, React.CSSProperties> = {
     borderRadius: '8px',
     boxShadow: '0 0 10px rgba(0,0,0,0.1)',
     width: '300px',
+    marginRight: '20px', // フォームとゲームIDリストの間にマージンを追加
   },
   inputGroup: {
     marginBottom: '15px',
@@ -71,18 +191,42 @@ const styles: Record<string, React.CSSProperties> = {
     border: '1px solid #ccc',
     borderRadius: '4px',
   },
+  error: {
+    color: 'red',
+    marginTop: '10px',
+  },
   button: {
     width: '100%',
     padding: '10px',
+    color: '#fff',
     border: 'none',
     borderRadius: '4px',
-    color: '#fff',
-    backgroundColor: '#007bff',
-    fontSize: '16px',
     cursor: 'pointer',
+    transition: 'background-color 0.3s',
   },
-  error: {
-    color: 'red',
-    fontSize: '14px',
+  content: {
+    flexGrow: 1,
+  },
+  gameIdContainer: {
+    backgroundColor: '#fff',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    width: '100%',
+  },
+  gameIdList: {
+    listStyleType: 'none',
+    padding: '0',
+  },
+  gameIdItem: {
+    padding: '5px 0',
+  },
+  playersContainer: {
+    backgroundColor: '#fff',
+    padding: '20px',
+    borderRadius: '8px',
+    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
+    width: '100%',
+    marginLeft: '20px', // プレイヤーリストとゲームIDリストの間にマージンを追加
   },
 };
