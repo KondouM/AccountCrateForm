@@ -1,10 +1,13 @@
+nohup: 入力を無視します
 
-> my-sql-form@0.1.0 dev
-> next dev
+> my-sql-form@0.1.0 start
+> next start
 
   ▲ Next.js 14.2.7
   - Local:        http://localhost:3000
-  - Environments: .env.local
 
  ✓ Starting...
- ✓ Ready in 2.8s
+Error: Could not find a production build in the '.next' directory. Try building your app with 'next build' before starting the production server. https://nextjs.org/docs/messages/production-start-no-build-id
+    at setupFsCheck (/home/redstone/AccountCrateForm/node_modules/next/dist/server/lib/router-utils/filesystem.js:151:19)
+    at async initialize (/home/redstone/AccountCrateForm/node_modules/next/dist/server/lib/router-server.js:62:23)
+    at async Server.<anonymous> (/home/redstone/AccountCrateForm/node_modules/next/dist/server/lib/start-server.js:249:36)
