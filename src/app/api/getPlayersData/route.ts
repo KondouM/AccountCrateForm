@@ -14,10 +14,15 @@ const config: sql.config = {
   },
 };
 
+// グローバル接続プール
+let pool: sql.ConnectionPool | null = null;
+
 export async function GET() {
   try {
-    // データベースへの接続
-    const pool = await sql.connect(config);
+    // データベースへの接続（プールの再利用）
+    if (!pool) {
+      pool = await sql.connect(config);
+    }
 
     // SQLクエリの実行（lev 昇順にソート）
     const result = await pool.request().query(`
@@ -28,9 +33,6 @@ export async function GET() {
 
     // クエリ結果をJSON形式で返す
     const avatarData = result.recordset;
-
-    // データベース接続を閉じる
-    await pool.close();
 
     // プレイヤーリストを返す
     return NextResponse.json(avatarData);
