@@ -1,12 +1,6 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 
-// ランプのスタイル
-const lampStyles = {
-  red: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'red' },
-  gray: { width: '10px', height: '10px', borderRadius: '50%', backgroundColor: 'gray' },
-};
-
 interface Player {
   name: string;
   job: number;  // job を数値型に変更
@@ -18,7 +12,7 @@ export default function HomePage() {
   const [userID, setUserID] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [buttonColor, setButtonColor] = useState('#007bff');
+  const [buttonColor, setButtonColor] = useState('bg-blue-500');
   const [gameIds, setGameIds] = useState<{ id: number; gameId: string }[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
@@ -81,159 +75,89 @@ export default function HomePage() {
   };
 
   return (
-    <div style={styles.container}>
-      <form onSubmit={handleSubmit} style={styles.form}>
-        <div style={styles.inputGroup}>
-          <label htmlFor="userID" style={styles.label}>User ID:</label>
-          <input
-            type="text"
-            id="userID"
-            value={userID}
-            onChange={(e) => setUserID(e.target.value)}
-            style={styles.input}
-          />
-        </div>
-        <div style={styles.inputGroup}>
-          <label htmlFor="password" style={styles.label}>Password:</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={styles.input}
-          />
-        </div>
-        {error && <p style={styles.error}>{error}</p>}
-        <button
-          type="submit"
-          style={{ ...styles.button, backgroundColor: buttonColor }}
-          onMouseEnter={() => setButtonColor('#0056b3')}
-          onMouseLeave={() => setButtonColor('#007bff')}
-        >
-          ユーザーを作成する
-        </button>
-      </form>
-      <div style={styles.content}>
-        <div style={styles.playersContainer}>
-          <h2>Players List</h2>
-          {loadingPlayers ? (
-            <p>Loading...</p>
-          ) : (
-            <div style={{ maxHeight: '400px', overflowY: 'auto', border: '1px solid #ccc', padding: '10px' }}>
-              <table style={{ width: '100%', textAlign: 'center', borderCollapse: 'separate', borderSpacing: '0 2px' }}>
-                <thead>
-                  <tr>
-                    <th style={{ padding: '5px' }}>Rank</th>
-                    <th style={{ padding: '5px' }}>Name</th>
-                    <th style={{ padding: '5px' }}>Job</th>
-                    <th style={{ padding: '5px' }}>Level</th>
-                    <th style={{ padding: '5px' }}>Login Status</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {players.map((player, index) => (
-                    <tr key={index}>
-                      <td style={{ padding: '5px' }}>{index + 1}</td> {/* インデックス番号を表示 */}
-                      <td style={{ padding: '5px' }}>{player.name}</td>
-                      <td style={{ padding: '5px' }}>
-                        {/* job番号に応じた画像を表示 */}
-                        <img
-                          src={`/images/${player.job}.gif`}
-                          alt={`Job ${player.job}`}
-                          style={{ width: '30px', height: '20px', borderRadius: '10%' }}
-                        />
-                      </td>
-                      <td style={{ padding: '5px' }}>{player.lev}</td>
-                      <td style={{ padding: '5px', textAlign: 'center' }}>
-                        {/* ログインステータスの中央にランプを配置 */}
-                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
-                          <div style={player.login === 1 ? lampStyles.red : lampStyles.gray}></div>
-                        </div>
-                      </td>
+    <div className="flex flex-col items-start h-screen w-screen bg-gray-100 bg-cover bg-center bg-no-repeat p-5" style={{ backgroundImage: 'url("/images/background.jpg")' }}>
+      {/* ナビゲーションバー */}
+      <nav className="flex justify-around bg-gray-200 p-2 rounded-lg shadow-md w-full mb-5">
+        <a href="#top" className="text-blue-500 font-bold p-2">TOP</a>
+        <a href="/filedownload" className="text-blue-500 font-bold p-2">ダウンロード</a>
+        <a href="#server-info" className="text-blue-500 font-bold p-2">サーバー情報</a>
+      </nav>
+
+      <div className="flex w-full">
+        <form onSubmit={handleSubmit} className="bg-gray-200 p-5 rounded-lg shadow-md w-1/3 mr-5 mb-0">
+          <div className="mb-4">
+            <label htmlFor="userID" className="block mb-1 font-bold">User ID:</label>
+            <input
+              type="text"
+              id="userID"
+              value={userID}
+              onChange={(e) => setUserID(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          <div className="mb-4">
+            <label htmlFor="password" className="block mb-1 font-bold">Password:</label>
+            <input
+              type="password"
+              id="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              className="w-full p-2 border border-gray-300 rounded"
+            />
+          </div>
+          {error && <p className="text-red-500 mt-2">{error}</p>}
+          <button
+            type="submit"
+            className={`w-full p-2 text-white rounded ${buttonColor}`}
+            onMouseEnter={() => setButtonColor('bg-blue-700')}
+            onMouseLeave={() => setButtonColor('bg-blue-500')}
+          >
+            ユーザーを作成する
+          </button>
+        </form>
+
+        <div className="flex-grow">
+          <div className="bg-gray-200 p-5 rounded-lg shadow-md w-full ml-5">
+            <h2>Players List</h2>
+            {loadingPlayers ? (
+              <p>Loading...</p>
+            ) : (
+              <div className="max-h-96 overflow-y-auto border border-gray-300 p-2 bg-gray-200">
+                <table className="w-full text-center border-separate border-spacing-0">
+                  <thead>
+                    <tr>
+                      <th className="p-2">Rank</th>
+                      <th className="p-2">Name</th>
+                      <th className="p-2">Job</th>
+                      <th className="p-2">Level</th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          )}
+                  </thead>
+                  <tbody>
+                    {players.map((player, index) => (
+                      <tr key={index} className="bg-gray-200">
+                        <td className="p-2">{index + 1}</td>
+                        <td className="p-2">{player.name}</td>
+                        <td className="p-2">
+                          <img
+                            src={`/images/${player.job}.gif`}
+                            alt={`Job ${player.job}`}
+                            className="w-8 h-5 rounded"
+                          />
+                        </td>
+                        <td className="p-2">{player.lev}</td>
+                        <td className="p-2 text-center">
+                          <div className="flex justify-center items-center h-full">
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
   );
 }
-
-const styles: Record<string, React.CSSProperties> = {
-  container: {
-    display: 'flex',
-    flexDirection: 'row', // フォームとゲームIDリストを横に並べる
-    alignItems: 'flex-start',
-    height: '100vh',
-    width: '100vw', // 横幅を画面全体に設定
-    backgroundColor: '#f0f2f5',
-    backgroundImage: 'url("/images/background.jpg")',
-    backgroundSize: 'cover', // 画像をコンテナ全体にフィットさせる
-    backgroundPosition: 'center', // 画像をコンテナの中央に配置
-    backgroundRepeat: 'no-repeat', // 画像の繰り返しを防ぐ
-    padding: '20px',
-  },
-  form: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    width: '300px',
-    marginRight: '20px', // フォームとゲームIDリストの間にマージンを追加
-  },
-  inputGroup: {
-    marginBottom: '15px',
-  },
-  label: {
-    display: 'block',
-    marginBottom: '5px',
-    fontWeight: 'bold',
-  },
-  input: {
-    width: '100%',
-    padding: '10px',
-    border: '1px solid #ccc',
-    borderRadius: '4px',
-  },
-  error: {
-    color: 'red',
-    marginTop: '10px',
-  },
-  button: {
-    width: '100%',
-    padding: '10px',
-    color: '#fff',
-    border: 'none',
-    borderRadius: '4px',
-    cursor: 'pointer',
-    transition: 'background-color 0.3s',
-  },
-  content: {
-    flexGrow: 1,
-  },
-  gameIdContainer: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    width: '100%',
-  },
-  gameIdList: {
-    listStyleType: 'none',
-    padding: '0',
-  },
-  gameIdItem: {
-    padding: '5px 0',
-  },
-  playersContainer: {
-    backgroundColor: '#fff',
-    padding: '20px',
-    borderRadius: '8px',
-    boxShadow: '0 0 10px rgba(0,0,0,0.1)',
-    width: '100%',
-    marginLeft: '20px', // プレイヤーリストとゲームIDリストの間にマージンを追加
-  },
-};
