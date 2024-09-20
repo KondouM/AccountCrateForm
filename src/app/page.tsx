@@ -91,7 +91,7 @@ export default function HomePage() {
 
             {/* お知らせ表示 */}
             {notification && (
-              <div className="text-red-500 mb-2">
+              <div className="text-red-500 mb-2 p-3 bg-yellow-200 border-l-4 border-red-600 font-bold text-lg">
                 {notification}
         </div>
         )}
