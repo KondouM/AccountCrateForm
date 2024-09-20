@@ -16,6 +16,12 @@ export default function HomePage() {
   const [gameIds, setGameIds] = useState<{ id: number; gameId: string }[]>([]);
   const [players, setPlayers] = useState<Player[]>([]);
   const [loadingPlayers, setLoadingPlayers] = useState(true);
+  const [notification, setNotification] = useState(''); // お知らせ用の状態を追加
+
+  useEffect(() => {
+    // お知らせメッセージを設定
+    setNotification('HP修正しました。');
+  }, []);
 
   // プレイヤーデータを取得する関数
   const fetchPlayers = async () => {
@@ -79,9 +85,16 @@ export default function HomePage() {
       {/* ナビゲーションバー */}
       <nav className="flex justify-around bg-gray-200 p-2 rounded-lg shadow-md w-full mb-5">
         <a href="#top" className="text-blue-500 font-bold p-2">TOP</a>
-        <a href="/filedownload" className="text-blue-500 font-bold p-2">ダウンロード</a>
-        <a href="#server-info" className="text-blue-500 font-bold p-2">サーバー情報</a>
+        <a href="/filedownload" className="text-blue-500 font-bold p-2">ダウンロード(公開前に修正)</a>
+        <a href="#server-info" className="text-blue-500 font-bold p-2">サーバー情報(公開前に修正)</a>
       </nav>
+
+            {/* お知らせ表示 */}
+            {notification && (
+              <div className="text-red-500 mb-2">
+                {notification}
+        </div>
+        )}
 
       <div className="flex w-full">
         <form onSubmit={handleSubmit} className="bg-gray-200 p-5 rounded-lg shadow-md w-1/3 mr-5 mb-0">
